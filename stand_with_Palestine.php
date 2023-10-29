@@ -1,8 +1,14 @@
 <?php
 /**
  * Plugin Name: Stand with Palestine
- * Description: Display "I stand with Palestine" with a  flag in the bottom corner of the website.
+ * Description: Display "We stand with Palestine" with a flag in the bottom corner of the website.
+ * Version: 1.0
+ * Requires PHP: 7.2
+ * Author: Yaman Refki
+ * Author URI: https://yaman-refki.com
+ * test
  */
+
 
 // Register a custom settings page
 function stand_with_palestine_menu() {
@@ -14,6 +20,13 @@ add_action('admin_menu', 'stand_with_palestine_menu');
 function stand_with_palestine_settings_init() {
     register_setting('stand_with_palestine_group', 'stand_with_palestine_text');
     register_setting('stand_with_palestine_group', 'stand_with_palestine_link');
+    register_setting('stand_with_palestine_group', 'stand_with_palestine_position', array(
+        'default' => 'right'
+    ));
+    // Add a setting for the theme (light or dark)
+    register_setting('stand_with_palestine_group', 'stand_with_palestine_theme', array(
+        'default' => 'light', // Set the default theme to 'light'
+    ));
 }
 add_action('admin_init', 'stand_with_palestine_settings_init');
 
@@ -34,6 +47,34 @@ function stand_with_palestine_settings_page() {
                     <th scope="row">Link URL (optional)</th>
                     <td><input type="text" name="stand_with_palestine_link" value="<?php echo esc_attr(get_option('stand_with_palestine_link')); ?>" /></td>
                 </tr>
+                <tr valign="top">
+                    <th scope="row">Position</th>
+                    <td>
+                        <label>
+                            <input type="radio" name="stand_with_palestine_position" value="right" <?php checked(get_option('stand_with_palestine_position', 'right'), 'right'); ?> />
+                            Right
+                        </label>
+                        <br>
+                        <label>
+                            <input type="radio" name="stand_with_palestine_position" value="left" <?php checked(get_option('stand_with_palestine_position', 'right'), 'left'); ?> />
+                            Left
+                        </label>
+                    </td>
+                </tr>
+                <tr valign="top">
+                    <th scope="row">Theme</th>
+                    <td>
+                        <label>
+                            <input type="radio" name="stand_with_palestine_theme" value="light" <?php checked(get_option('stand_with_palestine_theme', 'light'), 'light'); ?> />
+                            Light
+                        </label>
+                        <br>
+                        <label>
+                            <input type="radio" name="stand_with_palestine_theme" value="dark" <?php checked(get_option('stand_with_palestine_theme', 'light'), 'dark'); ?> />
+                            Dark
+                        </label>
+                    </td>
+                </tr>
             </table>
             <?php submit_button(); ?>
         </form>
@@ -46,36 +87,39 @@ function add_stand_with_palestine() {
     $plugin_url = plugin_dir_url(__FILE__);
     $flag_image_url = $plugin_url . 'Flag_of_Palestine.png';
     $box_text = get_option('stand_with_palestine_text');
-    $box_link = get_option('stand_with_palestine_link', ''); // Use '' as the default value
+    $box_link = get_option('stand_with_palestine_link', '');
+    $box_position = get_option('stand_with_palestine_position', 'right');
+    $theme = get_option('stand_with_palestine_theme', 'light');
 
-    // Set the default text if the box text is empty
     if (empty($box_text)) {
         $box_text = 'We #StandWithPalestine';
     }
+
+    $position_css = $box_position === 'left' ? 'left: 20px;' : 'right: 20px;';
+    $theme_css = $theme === 'light' ? 'background: #fff; color: #0e1217;' : 'background: #0e1217; color: #fff;';
 
     ?>
     <style>
         #stand-with-palestine {
             position: fixed;
             bottom: 20px;
-            right: 20px;
-            background: #fff;
-            color: #000;
+            <?php echo $position_css; ?>
+            <?php echo $theme_css; ?>
             padding: 15px;
-            border-radius: 20px;
+            border-radius: 50px;
             cursor: pointer;
             display: flex;
             align-items: center;
-            justify-content: center; 
+            justify-content: center;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
             z-index: 999;
         }
-
+        
         #stand-with-palestine a {
             display: flex;
             align-items: center;
             text-decoration: none;
-            color: #000;
+            color: <?php echo $theme === 'light' ? '#000' : '#fff'; ?>;
         }
 
         #stand-with-palestine img {
